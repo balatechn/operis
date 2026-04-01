@@ -1,7 +1,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# --include=dev ensures devDependencies (e.g. @nestjs/cli) are installed even if NODE_ENV=production
+RUN npm ci --include=dev
 COPY . .
 RUN npm run build
 
