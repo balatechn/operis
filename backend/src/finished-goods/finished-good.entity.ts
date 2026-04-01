@@ -51,6 +51,14 @@ export class FinishedGood {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  companyId: string;
+
+  @CreateDateColumn()
+
+  @Column({ default: true })
+  isActive: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

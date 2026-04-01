@@ -16,10 +16,13 @@ export class PurchaseService {
   ) {}
 
   // PO Methods
-  async createPO(data: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
-    const count = await this.poRepo.count();
+  async createPO(data: Partial<PurchaseOrder>, companyId?: string): Promise<PurchaseOrder> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const count = await this.poRepo.count({ where });
     const po = this.poRepo.create({
       ...data,
+      companyId: companyId || data.companyId,
       poNumber: `PO-${String(count + 1).padStart(5, '0')}`,
     });
     const saved = await this.poRepo.save(po);
@@ -27,8 +30,10 @@ export class PurchaseService {
     return saved;
   }
 
-  async findAllPOs(): Promise<PurchaseOrder[]> {
-    return this.poRepo.find({ order: { createdAt: 'DESC' } });
+  async findAllPOs(companyId?: string): Promise<PurchaseOrder[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.poRepo.find({ where, order: { createdAt: 'DESC' } });
   }
 
   async findPOById(id: string): Promise<PurchaseOrder> {
@@ -45,10 +50,13 @@ export class PurchaseService {
   }
 
   // GRN Methods
-  async createGRN(data: Partial<GRN>): Promise<GRN> {
-    const count = await this.grnRepo.count();
+  async createGRN(data: Partial<GRN>, companyId?: string): Promise<GRN> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const count = await this.grnRepo.count({ where });
     const grn = this.grnRepo.create({
       ...data,
+      companyId: companyId || data.companyId,
       grnNumber: `GRN-${String(count + 1).padStart(5, '0')}`,
     });
     return this.grnRepo.save(grn);
@@ -63,18 +71,22 @@ export class PurchaseService {
     return saved;
   }
 
-  async findAllGRNs(): Promise<GRN[]> {
-    return this.grnRepo.find({ order: { createdAt: 'DESC' } });
+  async findAllGRNs(companyId?: string): Promise<GRN[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.grnRepo.find({ where, order: { createdAt: 'DESC' } });
   }
 
   // Vendor Methods
-  async createVendor(data: Partial<Vendor>): Promise<Vendor> {
-    const vendor = this.vendorRepo.create(data);
+  async createVendor(data: Partial<Vendor>, companyId?: string): Promise<Vendor> {
+    const vendor = this.vendorRepo.create({ ...data, companyId: companyId || data.companyId });
     return this.vendorRepo.save(vendor);
   }
 
-  async findAllVendors(): Promise<Vendor[]> {
-    return this.vendorRepo.find({ order: { name: 'ASC' } });
+  async findAllVendors(companyId?: string): Promise<Vendor[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.vendorRepo.find({ where, order: { name: 'ASC' } });
   }
 
   async findVendorById(id: string): Promise<Vendor> {

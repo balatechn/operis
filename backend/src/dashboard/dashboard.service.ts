@@ -17,23 +17,24 @@ export class DashboardService {
     @InjectRepository(PurchaseOrder) private readonly poRepo: Repository<PurchaseOrder>,
   ) {}
 
-  async getOverview() {
+  async getOverview(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
     const [rmCount, fgCount, prodCount, salesCount, poCount] = await Promise.all([
-      this.rmRepo.count(),
-      this.fgRepo.count(),
-      this.prodRepo.count(),
-      this.soRepo.count(),
-      this.poRepo.count(),
+      this.rmRepo.count({ where }),
+      this.fgRepo.count({ where }),
+      this.prodRepo.count({ where }),
+      this.soRepo.count({ where }),
+      this.poRepo.count({ where }),
     ]);
 
-    const lowStockRM = await this.rmRepo
-      .createQueryBuilder('rm')
-      .where('rm.currentStock <= rm.minimumStock')
-      .getCount();
+    const lowStockQB = this.rmRepo.createQueryBuilder('rm').where('rm.currentStock <= rm.minimumStock');
+    if (companyId) lowStockQB.andWhere('rm.companyId = :companyId', { companyId });
+    const lowStockRM = await lowStockQB.getCount();
 
-    const activeProduction = await this.prodRepo.count({ where: { status: ProductionStatus.IN_PROGRESS } });
-    const pendingDispatch = await this.soRepo.count({ where: { status: SalesOrderStatus.CONFIRMED } });
-    const pendingPOs = await this.poRepo.count({ where: { status: POStatus.SENT } });
+    const activeProduction = await this.prodRepo.count({ where: { ...where, status: ProductionStatus.IN_PROGRESS } });
+    const pendingDispatch = await this.soRepo.count({ where: { ...where, status: SalesOrderStatus.CONFIRMED } });
+    const pendingPOs = await this.poRepo.count({ where: { ...where, status: POStatus.SENT } });
 
     return {
       rawMaterials: rmCount,
@@ -41,18 +42,15 @@ export class DashboardService {
       productionOrders: prodCount,
       salesOrders: salesCount,
       purchaseOrders: poCount,
-      alerts: {
-        lowStockRM,
-        activeProduction,
-        pendingDispatch,
-        pendingPOs,
-      },
+      alerts: { lowStockRM, activeProduction, pendingDispatch, pendingPOs },
     };
   }
 
-  async getInventoryHealth() {
-    const rawMaterials = await this.rmRepo.find();
-    const finishedGoods = await this.fgRepo.find();
+  async getInventoryHealth(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const rawMaterials = await this.rmRepo.find({ where });
+    const finishedGoods = await this.fgRepo.find({ where });
     return {
       rawMaterials: rawMaterials.map((rm) => ({
         id: rm.id,
@@ -71,8 +69,10 @@ export class DashboardService {
     };
   }
 
-  async getProductionEfficiency() {
-    const completed = await this.prodRepo.find({ where: { status: ProductionStatus.COMPLETED } });
+  async getProductionEfficiency(companyId?: string) {
+    const where: any = { status: ProductionStatus.COMPLETED };
+    if (companyId) where.companyId = companyId;
+    const completed = await this.prodRepo.find({ where });
     const efficiency = completed.map((p) => ({
       orderNumber: p.orderNumber,
       planned: p.plannedQuantity,
@@ -83,8 +83,10 @@ export class DashboardService {
     return efficiency;
   }
 
-  async getSalesTrend() {
-    const orders = await this.soRepo.find({ order: { createdAt: 'DESC' } });
+  async getSalesTrend(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const orders = await this.soRepo.find({ where, order: { createdAt: 'DESC' } });
     const trend: Record<string, { date: string; revenue: number; orders: number }> = {};
     for (const order of orders) {
       const date = order.createdAt.toISOString().split('T')[0];

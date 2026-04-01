@@ -20,8 +20,14 @@ export class RawMaterial {
   @Column({ nullable: true })
   category: string;
 
+  @Column({ nullable: true })
+  categoryId: string;
+
   @Column()
   unit: string;
+
+  @Column({ nullable: true })
+  uomId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   currentStock: number;
@@ -55,6 +61,9 @@ export class RawMaterial {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({ nullable: true })
+  companyId: string;
 
   @CreateDateColumn()
   createdAt: Date;

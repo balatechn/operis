@@ -30,7 +30,7 @@ export class AuthController {
       name: body.name,
       email: body.email,
       password: body.password,
-      role: UserRole.ADMIN,
+      role: UserRole.SUPER_ADMIN,
       isActive: true,
     });
     return this.authService.login(body.email, body.password);

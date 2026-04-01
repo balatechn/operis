@@ -41,6 +41,9 @@ export class PackingOrder {
   @Column({ default: false })
   isCompleted: boolean;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

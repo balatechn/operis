@@ -7,6 +7,7 @@ interface User {
   email: string;
   name: string;
   role: string;
+  companyId?: string;
 }
 
 interface AuthStore {
@@ -15,11 +16,13 @@ interface AuthStore {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  isSuperAdmin: () => boolean;
+  isAdmin: () => boolean;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -32,7 +35,10 @@ export const useAuthStore = create<AuthStore>()(
         localStorage.removeItem('operis_token');
         set({ user: null, token: null, isAuthenticated: false });
       },
+      isSuperAdmin: () => get().user?.role === 'super_admin',
+      isAdmin: () => ['super_admin', 'admin'].includes(get().user?.role || ''),
     }),
     { name: 'operis-auth' }
   )
 );
+

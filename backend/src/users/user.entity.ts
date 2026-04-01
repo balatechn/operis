@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export enum UserRole {
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
   MANAGER = 'manager',
   OPERATOR = 'operator',
@@ -29,6 +30,9 @@ export class User {
 
   @Column({ nullable: true })
   branch: string;
+
+  @Column({ nullable: true })
+  companyId: string;
 
   @CreateDateColumn()
   createdAt: Date;

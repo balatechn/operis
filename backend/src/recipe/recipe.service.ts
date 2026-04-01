@@ -11,8 +11,10 @@ export class RecipeService {
     private readonly rmService: RawMaterialsService,
   ) {}
 
-  async findAll(): Promise<Recipe[]> {
-    return this.recipeRepo.find({ order: { name: 'ASC' } });
+  async findAll(companyId?: string): Promise<Recipe[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.recipeRepo.find({ where, order: { name: 'ASC' } });
   }
 
   async findById(id: string): Promise<Recipe> {
@@ -21,8 +23,8 @@ export class RecipeService {
     return recipe;
   }
 
-  async create(data: Partial<Recipe>): Promise<Recipe> {
-    const recipe = this.recipeRepo.create(data);
+  async create(data: Partial<Recipe>, companyId?: string): Promise<Recipe> {
+    const recipe = this.recipeRepo.create({ ...data, companyId: companyId || data.companyId });
     return this.recipeRepo.save(recipe);
   }
 

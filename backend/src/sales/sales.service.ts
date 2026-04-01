@@ -14,8 +14,10 @@ export class SalesService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
-  async findAllOrders(): Promise<SalesOrder[]> {
-    return this.soRepo.find({ order: { createdAt: 'DESC' } });
+  async findAllOrders(companyId?: string): Promise<SalesOrder[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.soRepo.find({ where, order: { createdAt: 'DESC' } });
   }
 
   async findOrderById(id: string): Promise<SalesOrder> {
@@ -24,18 +26,20 @@ export class SalesService {
     return order;
   }
 
-  async createOrder(data: Partial<SalesOrder>): Promise<SalesOrder> {
-    // Check stock availability
+  async createOrder(data: Partial<SalesOrder>, companyId?: string): Promise<SalesOrder> {
     for (const item of data.items || []) {
       const fg = await this.fgService.findById(item.finishedGoodId);
       if (Number(fg.currentStock) < item.quantity) {
         throw new BadRequestException(`Insufficient stock for ${item.name}: Available ${fg.currentStock}, Required ${item.quantity}`);
       }
     }
-    const count = await this.soRepo.count();
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const count = await this.soRepo.count({ where });
     const invoiceNumber = `INV-${String(count + 1).padStart(5, '0')}`;
     const order = this.soRepo.create({
       ...data,
+      companyId: companyId || data.companyId,
       orderNumber: `SO-${String(count + 1).padStart(5, '0')}`,
       invoiceNumber,
     });
@@ -63,8 +67,10 @@ export class SalesService {
     return this.soRepo.save(order);
   }
 
-  async getSalesTrend() {
-    const orders = await this.soRepo.find({ order: { createdAt: 'DESC' } });
+  async getSalesTrend(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const orders = await this.soRepo.find({ where, order: { createdAt: 'DESC' } });
     return orders.reduce((acc: any[], order) => {
       const date = order.createdAt.toISOString().split('T')[0];
       const existing = acc.find((a) => a.date === date);
@@ -78,12 +84,14 @@ export class SalesService {
     }, []);
   }
 
-  async findAllCustomers(): Promise<Customer[]> {
-    return this.customerRepo.find({ order: { name: 'ASC' } });
+  async findAllCustomers(companyId?: string): Promise<Customer[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.customerRepo.find({ where, order: { name: 'ASC' } });
   }
 
-  async createCustomer(data: Partial<Customer>): Promise<Customer> {
-    const customer = this.customerRepo.create(data);
+  async createCustomer(data: Partial<Customer>, companyId?: string): Promise<Customer> {
+    const customer = this.customerRepo.create({ ...data, companyId: companyId || data.companyId });
     return this.customerRepo.save(customer);
   }
 

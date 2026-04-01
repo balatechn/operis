@@ -26,6 +26,9 @@ export class Vendor {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @Column({ type: 'jsonb', default: [] })
   suppliedMaterials: string[];
 

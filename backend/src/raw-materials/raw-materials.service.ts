@@ -12,8 +12,10 @@ export class RawMaterialsService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
-  async findAll(): Promise<RawMaterial[]> {
-    return this.rmRepo.find({ order: { name: 'ASC' } });
+  async findAll(companyId?: string): Promise<RawMaterial[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.rmRepo.find({ where, order: { name: 'ASC' } });
   }
 
   async findById(id: string): Promise<RawMaterial> {
@@ -22,8 +24,8 @@ export class RawMaterialsService {
     return rm;
   }
 
-  async create(data: Partial<RawMaterial>): Promise<RawMaterial> {
-    const rm = this.rmRepo.create(data);
+  async create(data: Partial<RawMaterial>, companyId?: string): Promise<RawMaterial> {
+    const rm = this.rmRepo.create({ ...data, companyId: data.companyId || companyId });
     return this.rmRepo.save(rm);
   }
 
@@ -49,11 +51,10 @@ export class RawMaterialsService {
     return saved;
   }
 
-  async getLowStockItems(): Promise<RawMaterial[]> {
-    return this.rmRepo
-      .createQueryBuilder('rm')
-      .where('rm.currentStock <= rm.minimumStock')
-      .getMany();
+  async getLowStockItems(companyId?: string): Promise<RawMaterial[]> {
+    const qb = this.rmRepo.createQueryBuilder('rm').where('rm.currentStock <= rm.minimumStock');
+    if (companyId) qb.andWhere('rm.companyId = :companyId', { companyId });
+    return qb.getMany();
   }
 
   async getExpiryAlerts(daysAhead = 30): Promise<any[]> {
@@ -70,9 +71,11 @@ export class RawMaterialsService {
     return alerts;
   }
 
-  async getDashboardStats() {
-    const total = await this.rmRepo.count();
-    const low = await this.getLowStockItems();
+  async getDashboardStats(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const total = await this.rmRepo.count({ where });
+    const low = await this.getLowStockItems(companyId);
     const expiry = await this.getExpiryAlerts(30);
     return { totalMaterials: total, lowStockCount: low.length, expiryAlertCount: expiry.length };
   }

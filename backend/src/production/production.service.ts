@@ -15,8 +15,10 @@ export class ProductionService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
-  async findAll(): Promise<ProductionOrder[]> {
-    return this.prodRepo.find({ order: { createdAt: 'DESC' } });
+  async findAll(companyId?: string): Promise<ProductionOrder[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.prodRepo.find({ where, order: { createdAt: 'DESC' } });
   }
 
   async findById(id: string): Promise<ProductionOrder> {
@@ -25,11 +27,14 @@ export class ProductionService {
     return order;
   }
 
-  async create(data: Partial<ProductionOrder>): Promise<ProductionOrder> {
-    const count = await this.prodRepo.count();
+  async create(data: Partial<ProductionOrder>, companyId?: string): Promise<ProductionOrder> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const count = await this.prodRepo.count({ where });
     const batchNumber = `BATCH-${Date.now()}-${String(count + 1).padStart(4, '0')}`;
     const order = this.prodRepo.create({
       ...data,
+      companyId: companyId || data.companyId,
       orderNumber: `PRD-${String(count + 1).padStart(5, '0')}`,
       batchNumber,
     });
@@ -69,11 +74,13 @@ export class ProductionService {
     return saved;
   }
 
-  async getStats() {
-    const total = await this.prodRepo.count();
-    const planned = await this.prodRepo.count({ where: { status: ProductionStatus.PLANNED } });
-    const inProgress = await this.prodRepo.count({ where: { status: ProductionStatus.IN_PROGRESS } });
-    const completed = await this.prodRepo.count({ where: { status: ProductionStatus.COMPLETED } });
+  async getStats(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const total = await this.prodRepo.count({ where });
+    const planned = await this.prodRepo.count({ where: { ...where, status: ProductionStatus.PLANNED } });
+    const inProgress = await this.prodRepo.count({ where: { ...where, status: ProductionStatus.IN_PROGRESS } });
+    const completed = await this.prodRepo.count({ where: { ...where, status: ProductionStatus.COMPLETED } });
     return { total, planned, inProgress, completed };
   }
 }

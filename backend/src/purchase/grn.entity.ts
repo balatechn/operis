@@ -47,6 +47,9 @@ export class GRN {
   @Column({ nullable: true })
   warehouseLocation: string;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

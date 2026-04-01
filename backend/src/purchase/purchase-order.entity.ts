@@ -47,6 +47,9 @@ export class PurchaseOrder {
   @Column({ nullable: true })
   notes: string;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @OneToMany(() => GRN, (grn) => grn.purchaseOrder)
   grns: GRN[];
 

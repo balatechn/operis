@@ -34,6 +34,9 @@ export class Customer {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -85,6 +88,9 @@ export class SalesOrder {
 
   @Column({ nullable: true })
   invoiceNumber: string;
+
+  @Column({ nullable: true })
+  companyId: string;
 
   @CreateDateColumn()
   createdAt: Date;

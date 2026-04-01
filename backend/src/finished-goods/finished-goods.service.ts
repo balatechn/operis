@@ -11,8 +11,10 @@ export class FinishedGoodsService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
-  async findAll(): Promise<FinishedGood[]> {
-    return this.fgRepo.find({ order: { name: 'ASC' } });
+  async findAll(companyId?: string): Promise<FinishedGood[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.fgRepo.find({ where, order: { name: 'ASC' } });
   }
 
   async findById(id: string): Promise<FinishedGood> {
@@ -25,8 +27,8 @@ export class FinishedGoodsService {
     return this.fgRepo.findOne({ where: { sku } });
   }
 
-  async create(data: Partial<FinishedGood>): Promise<FinishedGood> {
-    const fg = this.fgRepo.create(data);
+  async create(data: Partial<FinishedGood>, companyId?: string): Promise<FinishedGood> {
+    const fg = this.fgRepo.create({ ...data, companyId: companyId || data.companyId });
     return this.fgRepo.save(fg);
   }
 
@@ -56,10 +58,12 @@ export class FinishedGoodsService {
     return this.update(id, { qualityStatus: status });
   }
 
-  async getDashboardStats() {
-    const total = await this.fgRepo.count();
-    const approved = await this.fgRepo.count({ where: { qualityStatus: QualityStatus.APPROVED } });
-    const hold = await this.fgRepo.count({ where: { qualityStatus: QualityStatus.HOLD } });
+  async getDashboardStats(companyId?: string) {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const total = await this.fgRepo.count({ where });
+    const approved = await this.fgRepo.count({ where: { ...where, qualityStatus: QualityStatus.APPROVED } });
+    const hold = await this.fgRepo.count({ where: { ...where, qualityStatus: QualityStatus.HOLD } });
     return { total, approved, hold };
   }
 }

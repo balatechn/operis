@@ -40,9 +40,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
+  icon?: React.ElementType;
 }
 
-export function Button({ children, className, variant = 'primary', size = 'md', loading, disabled, ...props }: ButtonProps) {
+export function Button({ children, className, variant = 'primary', size = 'md', loading, disabled, icon: Icon, ...props }: ButtonProps) {
   const variants = {
     primary: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm',
     secondary: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
@@ -71,6 +72,7 @@ export function Button({ children, className, variant = 'primary', size = 'md', 
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
       )}
+      {!loading && Icon && <Icon className="w-4 h-4" />}
       {children}
     </button>
   );

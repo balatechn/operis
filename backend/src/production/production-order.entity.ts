@@ -63,6 +63,9 @@ export class ProductionOrder {
   @Column({ nullable: true })
   notes: string;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

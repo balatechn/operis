@@ -13,8 +13,10 @@ export class PackingService {
     private readonly realtime: RealtimeGateway,
   ) {}
 
-  async findAll(): Promise<PackingOrder[]> {
-    return this.packRepo.find({ order: { createdAt: 'DESC' } });
+  async findAll(companyId?: string): Promise<PackingOrder[]> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    return this.packRepo.find({ where, order: { createdAt: 'DESC' } });
   }
 
   async findById(id: string): Promise<PackingOrder> {
@@ -23,9 +25,10 @@ export class PackingService {
     return order;
   }
 
-  async create(data: Partial<PackingOrder>): Promise<PackingOrder> {
-    const count = await this.packRepo.count();
-    // Auto-generate barcodes for each pack size
+  async create(data: Partial<PackingOrder>, companyId?: string): Promise<PackingOrder> {
+    const where: any = {};
+    if (companyId) where.companyId = companyId;
+    const count = await this.packRepo.count({ where });
     const packSizes = (data.packSizes || []).map((ps, idx) => ({
       ...ps,
       barcode: `OPS-${Date.now()}-${idx}`,
@@ -33,6 +36,7 @@ export class PackingService {
     }));
     const order = this.packRepo.create({
       ...data,
+      companyId: companyId || data.companyId,
       packingOrderNumber: `PKG-${String(count + 1).padStart(5, '0')}`,
       packSizes,
     });

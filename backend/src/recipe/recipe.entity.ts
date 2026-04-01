@@ -45,6 +45,9 @@ export class Recipe {
   @Column({ nullable: true })
   notes: string;
 
+  @Column({ nullable: true })
+  companyId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
